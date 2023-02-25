@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+         ">
+
+<!--    扫描组件（除了控制层）-->
+    <context:component-scan base-package="com.starry_sky.yang">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+<!--    引入配置文件-->
+    <context:property-placeholder location="classpath:jdbc.properties"/>
+<!--    管理数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+<!--    配置事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+<!--    开启事务的注解驱动 使用@Transaction 进行管理-->
+    <tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+<!--    配置SqlSessionFactoryBean-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+<!--        设置Mybatis的核心配置路径-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+<!--        设置数据源-->
+        <property name="dataSource" ref="dataSource"/>
+<!--        设置类型别名所对应的包-->
+        <property name="typeAliasesPackage" value="com.starry_sky.yang.pojo"/>
+<!--        设置mapper映射文件的路径的路径名和mapper接口路径相同时可以不设置-->
+        <property name="mapperLocations" value="classpath:com/starry_sky/yang/mapper/*.xml"/>
+    </bean>
+
+<!--
+ mapper接口扫描，可以将指定包下的所有mapper接口，
+通过SqlSession创建代理实现类的对象，并将这些对象交给IOC容器管理
+-->
+     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.starry_sky.yang.mapper"/>
+     </bean>
+</beans>
